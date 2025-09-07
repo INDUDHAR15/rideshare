@@ -3,14 +3,14 @@ from sqlalchemy.orm import Session
 from app import models, schemas
 from app.database import get_db
 from passlib.context import CryptContext
-from jose import JWTError, jwt
-from datetime import datetime, timedelta
+from jose import jwt
+from datetime import timedelta, datetime
 
 router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-SECRET_KEY = "supersecret123"  # you can load this from .env
+SECRET_KEY = "supersecret123"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -31,7 +31,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 
 @router.post("/register", response_model=schemas.UserOut)
-def create_user(user: schemas.UserOut, db: Session = Depends(get_db)):
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -50,7 +50,7 @@ def create_user(user: schemas.UserOut, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
+def login(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.email == user.email).first()
     if not db_user or not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -60,4 +60,23 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         data={"sub": str(db_user.id)}, expires_delta=access_token_expires
     )
 
-    return {"access_token": access_token, "token_type": "bearer", "user_id": db_user.id}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "id": db_user.id,
+        "name": db_user.name,
+        "email": db_user.email,
+        "role": db_user.role.value,  # ✅ send role to frontend
+    }
+
+
+@router.put("/{user_id}/role", response_model=schemas.UserOut)
+def update_role(user_id: int, role_update: schemas.UserUpdateRole, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    db_user.role = role_update.role
+    db.commit()
+    db.refresh(db_user)
+    return db_user
