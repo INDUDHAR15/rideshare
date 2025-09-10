@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Booking Confirmation{% endblock %}
+{% block content %}
+  <h2>Booking Confirmed</h2>
+  <p><strong>Passenger:</strong> {{ booking.passenger.name }}</p>
+  <p><strong>Trip:</strong> {{ booking.trip.origin }} → {{ booking.trip.destination }}</p>
+  <p><strong>Date:</strong> {{ booking.trip.schedule_date }} at {{ booking.trip.schedule_time }}</p>
+  <p><strong>Break Points:</strong> {{ booking.trip.break_points | join(' → ') }}</p>
+  <p><strong>Seats Booked:</strong> {{ booking.num_people }}</p>
+  <p><strong>Driver:</strong> {{ booking.trip.driver.name }}</p>
+  <form method="GET" action="/download_pdf/{{ booking.id }}">
+    <input type="submit" value="Download PDF Receipt">
+  </form>
+{% endblock %}

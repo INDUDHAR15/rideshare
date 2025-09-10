@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Edit Trip{% endblock %}
+{% block content %}
+  <h2>Edit Trip</h2>
+  <form method="POST" action="/update_trip/{{ trip.id }}">
+    <label>Origin:</label>
+    <input type="text" name="origin" value="{{ trip.origin }}" required><br>
+    <label>Destination:</label>
+    <input type="text" name="destination" value="{{ trip.destination }}" required><br>
+    <label>Date:</label>
+    <input type="date" name="schedule_date" value="{{ trip.schedule_date }}" required><br>
+    <label>Time:</label>
+    <input type="time" name="schedule_time" value="{{ trip.schedule_time }}" required><br>
+    <label>Available Seats:</label>
+    <input type="number" name="available_seats" value="{{ trip.available_seats }}" min="1" required><br>
+    <label>Passenger Type:</label>
+    <select name="passenger_type">
+      <option value="Male" {% if trip.passenger_type=='Male' %}selected{% endif %}>Male</option>
+      <option value="Female" {% if trip.passenger_type=='Female' %}selected{% endif %}>Female</option>
+      <option value="Anyone" {% if trip.passenger_type=='Anyone' %}selected{% endif %}>Anyone</option>
+    </select><br>
+    <label>Break Points (comma-separated):</label>
+    <input type="text" name="break_points" value="{{ trip.break_points | join(', ') }}"><br>
+    <input type="submit" value="Update Trip">
+  </form>
+{% endblock %}
